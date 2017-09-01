@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>My Awesome Presentation</title>
+    <title>Unit Testing - Mike AbiEzzi</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <style type="text/css">
       @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
@@ -14,6 +14,14 @@
         font-weight: normal;
       }
       .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+
+      .remark-slide li {
+        padding-bottom: 1rem;
+      }
+
+      .remark-slide ul, .remark-slide ol {
+        padding-top: 1rem;
+      }
     </style>
   </head>
   <body onload="var slideshow = remark.create();">
@@ -21,20 +29,209 @@
 
 class: center, middle
 
-# My Awesome Presentation
+# Unit Testing
 
 ---
 
-# Agenda
+## Testing Pyramid
 
-1. Introduction
-2. Deep-dive
-3. ...
+- Manual Testing - fill any remaining voids
+- Acceptance Testing - ensures whole environment is working properly
+- Integration Testing - ensures architectural layers are integrating properly with each other
+- Unit Testing - allow quick, confident refactoring
 
-[NOTE]: This file is portable; you don't need any other file, or an internet connection for this presentation.
 ---
 
-# Introduction
+## What does refactoring look like?
+
+- You have one unit that’s too big and you need to break it up. Each spec represents functionality that will either stay with the original unit or move to the new unit. Specs serve as a form of a map of functionality to help make sure you account for everything during the refactor. [domain object]
+- Requirements change, and several units need to be updated. As you change code, unit tests ensure you don’t accidentally break something else. Every piece of code you touch will have an accompanying spec that needs to be clearly understood, and then modified or removed if it’s no longer relevant for the new requirements. [domain object]
+
+---
+
+## Language/Organization
+
+- BDD is more specific type of TDD. BDD goes beyond TDD by focusing on behaviors and specifications. When a behavior occurs, these are all the things that should happen. [communication preferences]
+- If specs are essentially your map to help guide you through refactoring, you need clear, plain English language that’s easy to navigate and quick to understand. This is the benefit of BDD over TDD. It makes refactoring easier to understand. [communication preferences]
+- Specs are also documentation. It should make it clear what the purpose of the code under test is. [communication preferences]
+
+---
+
+## BDD Organization
+
+- Describe [git grep "describe('when "]
+    - Top level: The thing that you’re testing
+    - Everything else: The behavior
+- It: What the behavior does [communication preferences]
+- Context: A scenario that causes a behavior to execute different lines of code [git grep "context('with "]
+
+---
+
+## BDD Language [domain object]
+
+- GOAL: To be able to read a concise description and clearly understand the purpose of the test.
+    - You don’t want to have to read the code of the test to understand the purpose of it.
+
+---
+
+### Describe
+
+- Long form: “when (behavior)…” [git grep "describe('when "]
+- Short form:
+    - \#instanceMethod (ES6 instance methods on classes)
+    - .classMethod (ES6 static methods on classes)
+
+---
+
+### Context
+
+- "with/for (inputs) …”  [disclaimer: not widely adopted]
+- only needed if there’s more than one scenario that executes different lines of code  [domain object - git grep "context('with "]
+- it has no functional difference than describe. It’s purely used for readability.
+
+---
+
+### It
+
+- “(does something)”
+- these are the “specs”
+
+---
+
+### BDD Output
+
+- “Describe + context + it” should read like a sentence  [communication preferences repo]
+- Makes it easy to review current functionality  [communication preferences repo]
+- Don’t put code or variable names in spec language. Use plan business language.  [communication preferences repo]
+    - You don’t want to have to remember to refactor your spec language because you changed a variable name.
+
+---
+
+### BeforeEach
+
+- Shared code between specs
+- Don’t put setup code in beforeEach until you have duplicate code in two specs. Helps avoid putting things in beforeEach that aren’t actually shared across more than test. [EXAMPLE]
+- Always use “beforeEach”, never use “before” (there are rare exceptions). Using “before” allows unintended test setup to bleed into other tests.
+
+---
+
+## TDD/BDD Approach [EXERCISE - LIVE CODING!?!]
+
+1. Write language first for everything you need to test. This serves as a task list of what you need to code.
+2. Start with the expectation (making up variables as you go)
+3. Call the behavior (making up any other needed variables as you go)
+4. Setup the variables that you made up when defining the expectation and calling the behavior
+5. DRY up the code (putting shared code in beforeEach or creating a function)
+
+---
+
+## Writing Tests First
+
+- TDD = “writing tests first”
+- Can help influence the design of the public interface of a unit [EXAMPLE]
+- Ensures that every line of code is tested, because you only write code for a failing test.
+
+---
+
+## Writing Tests First
+
+- Sometimes it’s hard to write tests first
+    - Sometimes you want to experiment with an implementation that influences the public interface of your unit.
+    - Sometimes I write both at the same time because writing both unit tests and writing production code influences my design of a unit
+    - Writing tests first can be difficult if your code is reliant on an unfamiliar framework and/or unfamiliar test helpers [angular controllers]
+    - Easier and more fun to do with plain old [insert programming language here] objects
+    - Writing tests second is fine, just make sure you can modify production code and see the test fail. (Ensures you didn’t accidentally create a false positive test)
+
+---
+
+## Dependency Units
+
+- Units rely on other units, but only the unit under test should be tested.
+- Other units should be mocked.
+- Don’t test the outputs of Dependency Units. They should have their own unit tests.
+- Simply verify how the unit under test interacts with Dependency units, that’s all.
+
+---
+
+## Tests Influences Production Code Design
+
+- If tests are hard to write because of complicated, deeply nested workflow, that’s a sign that your code needs to separate concerns. Follow SRP.
+
+---
+
+## Tests Influences Production Code Design
+
+- Testing private functions is the Devil
+    - It makes it harder to refactor/improve the internals of your unit, which conflicts with the primary purpose of unit testing, refactoring. Nothing feels better than freely refactoring the internals of a unit and not having to touch your tests and seeing green.
+    - Feeling the need to test private functions is a code smell. There’s likely too much going on in your unit. Follow SRP and extract out other units, and testing will become easier.
+    - [domain object] of private functions in an ES6 class.
+    - Your unit should be designed with a concise, intentional set of methods, that make the unit easy to interact with and understand. Having private functions made public makes it harder to understand the intent of the unit’s design and how it should be used.
+    - Promises are the only “private” internals that need to be returned in order to be to write tests against their execution. Boo JavaScript.
+
+---
+
+## Test Code is a First Class Citizen
+
+- Tests should be kept organized and DRY just like other production code. It gets all the same benefits. Easier to maintain. Easier to understand. Easier to refactor.
+
+---
+
+## Mocks vs Doubles vs Stubs vs Fakes vs Spies
+
+---
+
+## Mocks vs Doubles vs Stubs vs Fakes vs Spies
+
+- Be warned, meaning and existence can be different with different languages/frameworks
+
+---
+
+## Mocks vs Doubles vs Stubs vs Fakes vs Spies
+
+- Mocks and Doubles are two names to represent that same thing: A drop-in replacement for the real thing that can also track interactions. [sinon mocks]
+  - The better mocking frameworks make sure that the mock/double adheres to the same interface as the real thing. You’ll get an error if you try to mock a method that doesn’t exist on the real thing.
+  - Helps ensure that your mock will act like the real thing. Testing against a mock that acts different than the real thing essentially produces false positive tests.
+  - Sinon does have mocks, even though my Aetna hasn’t used them.
+
+---
+
+## Mocks vs Doubles vs Stubs vs Fakes vs Spies
+
+- Fakes are generally dumb drop-in replacements for the real thing where you just need the data and don’t care about verifying interactions. [git grep "fake" unit]
+
+---
+
+## Mocks vs Doubles vs Stubs vs Fakes vs Spies
+
+- Stubs are similar to Mocks, except you’re not creating a drop in replacement for the whole object. You’re just stubbing one of it’s methods. [git grep "sandbox.stub"]
+
+---
+
+## Mocks vs Doubles vs Stubs vs Fakes vs Spies
+
+- Spies can be used two way
+    1. A fake trackable method that you can attach to anything (generally attached to Fakes). Fakes + Spies = Frankenstein Mock. [git grep “spy()” unit]
+    2. Similar to stub, except it just spies on a function instead of stubbing. Meaning it doesn’t stop the function from actually executing like a stub does. It useful when you don’t want stop a the production code function from being called, but still want to verified that it was called. [git grep “sandbox.spy(“ unit]
+
+---
+
+## Matchers
+
+- Chai is essentially just a bunch of matchers (e.g. .to.eq is a matcher)
+- You can write your own custom matchers to keep your tests DRY
+- There are tons of add-on chai packages that include more matchers, generally for specific frameworks.
+
+---
+
+## Sinon’s Sandbox
+
+- If you didn’t have sandbox, everything you stub would have to be individually restored. Stubbing through sandbox allows you to call sandbox.restore and automatically restore everything that’s been stubbed. Trust me, it’s a life saver. There’s nothing more irritating than a stub leaking from one test to another because you forgot to restore it.
+
+---
+
+class: center, middle
+
+# THE END
 
     </textarea>
     <script type="text/javascript">
